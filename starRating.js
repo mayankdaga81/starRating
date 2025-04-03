@@ -1,24 +1,46 @@
 import { useState } from "react";
+import PropTypes from "prop-types";
 
 // styles associated with the items in this component.
 // This is kept outside the main component so that we do not have to regerate this every time the component is reloaded.
-const mainComp = {
-  display: "flex",
-  gap: "16px",
-  alignItems: "center",
-};
-
 const insideComp = {
   display: "flex",
 };
 
+//Not only this, if we want to make sure that this is highly usable, we ahve to deal will error handling too, where we must make sure that user is only sending the type of data which we are expecting.
+StarRating.propTypes = {
+  maxRating: PropTypes.number,
+};
+
 // here we are setting up a default value for the max value if number of stars. This is done to make this component highly reuseable.
-export default function StarRating({ maxRating = 5 }) {
-  const [rating, setRating] = useState(0);
+// Also, we are also making it more reusbale for different projects by giving the ability to change the size, color, add class names, etc.
+export default function StarRating({
+  maxRating = 5,
+  color = "#fcc419",
+  size = 48,
+  customClassName = "",
+  messages = [],
+  defaultRating = 0,
+  onSetRating,
+}) {
+  const [rating, setRating] = useState(defaultRating);
   const [tempRating, setTempRating] = useState(0);
+
+  const mainComp = {
+    display: "flex",
+    gap: "16px",
+    alignItems: "center",
+    color,
+    fontSize: `${size / 1.5}px`,
+  };
 
   function handleRating(rate) {
     setRating(rate);
+    // This is a function which came via props. The use case for this is that, whenever a user wants to get the value of the state or access the state of rating he/she can use in his own code.
+    // In easy langauge, suppose I want display the rate somewhere else in my component. Now, to do this we are using state where we will set the value of the state which can be set by updating the fucntion which was sent via props to this starRating function.
+    if (onSetRating) {
+      onSetRating(rate);
+    }
   }
 
   function handleHoverIn(rate) {
@@ -30,7 +52,7 @@ export default function StarRating({ maxRating = 5 }) {
   }
 
   return (
-    <div style={mainComp}>
+    <div style={mainComp} className={customClassName}>
       <div style={insideComp}>
         {/* We have used this thing in the previous code too for FAR AWAY. The benefit of using this is that it will create a empty array of the length specified by you and the perforn the operation with each of the value of i till the end given by you */}
         {/* Array.from() cretes empty array. It can take paarmeters like length to determine the length of empty array to be created. It can also take a call back function as a 2nd parameter and run a fucntion each time. */}
@@ -50,24 +72,31 @@ export default function StarRating({ maxRating = 5 }) {
             full={tempRating ? tempRating >= i + 1 : rating >= i + 1}
             handleHoverIn={() => handleHoverIn(i + 1)}
             handleHoverOut={() => handleHoverOut(0)}
+            color={color}
+            size={size}
           />
         ))}
       </div>
       {/* Used a ..... where if tempRating is 0, it will show rating and again if the rating is 0, then it will simply display the 3rd one which is an empty string. Whereas if we have rating then it will dispaly the rating directly */}
-      <span>{tempRating || rating || ""}</span>
+      <span>
+        {messages.length === maxRating
+          ? tempRating
+            ? messages[tempRating - 1]
+            : messages[rating - 1]
+          : tempRating || rating || ""}
+      </span>
     </div>
   );
 }
 
-const emptyStar = {
-  height: "30px",
-  width: "30px",
-  color: "white",
-  display: "block",
-  cursor: "pointer",
-};
-
-function Star({ onRate, full, handleHoverIn, handleHoverOut }) {
+function Star({ onRate, full, handleHoverIn, handleHoverOut, color, size }) {
+  const emptyStar = {
+    height: `${size}px`,
+    width: `${size}px`,
+    color: "white",
+    display: "block",
+    cursor: "pointer",
+  };
   return (
     <span
       role="button"
@@ -80,8 +109,8 @@ function Star({ onRate, full, handleHoverIn, handleHoverOut }) {
         <svg
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 20 20"
-          fill="#000"
-          stroke="#000"
+          fill={color}
+          stroke={color}
         >
           <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
         </svg>
@@ -90,7 +119,7 @@ function Star({ onRate, full, handleHoverIn, handleHoverOut }) {
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
           viewBox="0 0 24 24"
-          stroke="#000"
+          stroke={color}
         >
           <path
             strokeLinecap="round"
